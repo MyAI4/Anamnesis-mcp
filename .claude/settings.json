@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/arkad/.claude/projects/**)",
+      "Read(//c/Users/arkad/.claude/**)",
+      "Bash(python -c \"import fastmcp; help\\(fastmcp.FastMCP\\)\")",
+      "Bash(uv sync:*)",
+      "Bash(uv run:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ]
+  }
+}

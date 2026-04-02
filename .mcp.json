@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "anamnesis": {
+      "command": "uv",
+      "args": ["run", "--directory", "C:\\Users\\arkad\\Documents\\Projects\\Anamnesis-mcp", "anamnesis-mcp"]
+    }
+  }
+}
