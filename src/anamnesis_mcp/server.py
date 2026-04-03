@@ -19,7 +19,12 @@ from .config import (
     get_openai_api_key,
 )
 from .embeddings import EmbeddingPipeline, create_backend
-from .ingest.claude_code import discover_plans, discover_sessions, read_file_lines
+from .ingest.claude_code import (
+    discover_plans,
+    discover_sessions,
+    read_file_lines,
+    validate_source_path,
+)
 from .models import MemoryRecord, SourceRecord
 from .redaction import redact
 from .store import MemoryStore
@@ -154,7 +159,7 @@ async def _get_embeddings() -> EmbeddingPipeline:
         logger.info("Waiting for embedding model to finish loading...")
         await asyncio.wait_for(_embeddings_ready.wait(), timeout=120)
     if _embeddings_error:
-        raise RuntimeError(f"Embedding model failed to load: {_embeddings_error}")
+        raise RuntimeError("Embedding model failed to load")
     assert _embeddings is not None
     return _embeddings
 
@@ -176,7 +181,7 @@ async def anamnesis_ping() -> dict:
     return {
         "status": "ok",
         "embeddings_ready": _embeddings_ready.is_set(),
-        "embeddings_error": _embeddings_error,
+        "embeddings_error": bool(_embeddings_error),
         "total_memories": stats["total_memories"],
         "unprocessed_sources": stats["unprocessed_sources"],
     }
@@ -241,6 +246,12 @@ async def anamnesis_split_source(
         chunks: List of {"start": int, "end": int} line ranges (1-indexed, inclusive).
     """
     store = _get_store()
+    claude_dir = get_claude_dir()
+
+    # Validate path is within allowed directories
+    path_error = validate_source_path(file_path, claude_dir)
+    if path_error:
+        return {"error": path_error}
 
     # Clear any existing chunks for this file (allows re-splitting)
     store.delete_sources_for_file(file_path)
@@ -290,6 +301,12 @@ async def anamnesis_fetch_source(source_id: str) -> dict:
         if row is None:
             return {"error": f"Source not found: {source_id}"}
         source = SourceRecord.from_row(dict(row))
+
+    # Validate path even for stored records (defense in depth)
+    claude_dir = get_claude_dir()
+    path_error = validate_source_path(source.file_path, claude_dir)
+    if path_error:
+        return {"error": path_error}
 
     start = source.chunk_start or 1
     end = source.chunk_end or 999999

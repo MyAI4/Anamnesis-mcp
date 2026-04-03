@@ -14,12 +14,23 @@ REDACT_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
         ),
     ),
     (
-        "base64_blob",
-        re.compile(r"[A-Za-z0-9+/]{40,}={0,2}"),
+        "bearer_token",
+        re.compile(r"Bearer\s+[A-Za-z0-9._~+/=-]{20,}", re.IGNORECASE),
     ),
     (
-        "hex_key",
-        re.compile(r"[0-9a-f]{32,}", re.IGNORECASE),
+        "jwt_token",
+        re.compile(r"eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+"),
+    ),
+    (
+        "pem_private_key",
+        re.compile(r"-----BEGIN\s+(RSA|EC|DSA|OPENSSH)?\s*PRIVATE KEY-----"),
+    ),
+    (
+        "connection_string",
+        re.compile(
+            r"(postgres(?:ql)?|mysql|mongodb|redis|amqp)(\+\w+)?://\S+",
+            re.IGNORECASE,
+        ),
     ),
     (
         "aws_credential",
@@ -27,7 +38,19 @@ REDACT_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ),
     (
         "api_key_prefix",
-        re.compile(r"(sk|pk|rk)[-_][a-zA-Z0-9_-]{20,}"),
+        re.compile(r"(sk|pk|rk|ghp|gho|ghu|ghs|github_pat|xox[bpas])[-_][a-zA-Z0-9_-]{20,}"),
+    ),
+    (
+        "google_api_key",
+        re.compile(r"AIza[A-Za-z0-9_-]{35}"),
+    ),
+    (
+        "base64_blob",
+        re.compile(r"[A-Za-z0-9+/]{40,}={0,2}"),
+    ),
+    (
+        "hex_key",
+        re.compile(r"[0-9a-f]{32,}", re.IGNORECASE),
     ),
 ]
 

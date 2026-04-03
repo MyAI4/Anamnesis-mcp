@@ -57,6 +57,31 @@ def discover_plans(claude_dir: Path) -> list[dict]:
     return results
 
 
+def validate_source_path(file_path: str, claude_dir: Path) -> str | None:
+    """Validate that a file path is within allowed directories.
+
+    Returns None if valid, or an error message if not.
+    """
+    try:
+        resolved = Path(file_path).resolve()
+    except (OSError, ValueError):
+        return "Invalid file path"
+
+    allowed_roots = [
+        claude_dir.resolve(),
+        (claude_dir.parent / "plans").resolve(),
+    ]
+
+    for root in allowed_roots:
+        try:
+            resolved.relative_to(root)
+            return None
+        except ValueError:
+            continue
+
+    return "Path is outside allowed directories"
+
+
 def read_file_lines(file_path: str, start: int, end: int) -> str:
     """
     Read lines from a file (1-indexed, inclusive).
@@ -65,7 +90,7 @@ def read_file_lines(file_path: str, start: int, end: int) -> str:
     """
     path = Path(file_path)
     if not path.exists():
-        return f"Error: File not found: {file_path}"
+        return "Error: File not found"
 
     lines = []
     try:
@@ -75,8 +100,8 @@ def read_file_lines(file_path: str, start: int, end: int) -> str:
                     break
                 if i >= start:
                     lines.append(line)
-    except OSError as e:
-        return f"Error reading file: {e}"
+    except OSError:
+        return "Error reading file"
 
     return "".join(lines)
 

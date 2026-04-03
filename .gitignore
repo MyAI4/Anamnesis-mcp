@@ -33,5 +33,7 @@ Thumbs.db
 *.db
 .anamnesis/
 
-# Local Claude settings
-.claude/settings.local.json
+# Local config (contains user-specific paths)
+.claude/
+.mcp.json
+.env
